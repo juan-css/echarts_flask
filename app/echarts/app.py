@@ -9,7 +9,9 @@ app = Flask(__name__)
 @app.route("/index")
 def index():
 
-    data = generate_data()
-
+    # data = generate_data()
+    line_data, heatmap_data = generate_data()
+    
     return render_template("index.html",
-                           data=data)
+                           line_data=line_data,
+                           heatmap_data=heatmap_data)

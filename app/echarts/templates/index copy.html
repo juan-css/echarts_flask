@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Large Area Chart Visualization</title>
+    <!-- Include ECharts library -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.1/dist/echarts.min.js"></script>
+</head>
+
+<body style="height: 100%; margin: 0">
+    <div id="container" style="height: 100%"></div>
+    <script type="text/javascript">
+        // Your generated data from Python
+        var data = JSON.parse(`{{data}}`);
+
+        // Specify the configuration items and data for the chart
+        var option = {
+            tooltip: {
+                trigger: 'axis',
+                position: function (pt) {
+                    return [pt[0], '10%'];
+                }
+            },
+            // title: {
+            //     left: 'center',
+            //     text: 'Large Area Chart'
+            // },
+            toolbox: {
+                feature: {
+                    dataZoom: {
+                        yAxisIndex: 'none'
+                    },
+                    restore: {},
+                    saveAsImage: {}
+                }
+            },
+            xAxis: {
+                type: 'time',
+                boundaryGap: false,
+            },
+            yAxis: {
+                type: 'value',
+                boundaryGap: [0, '100%'],
+                name: 'SD from the mean',
+                nameLocation: 'middle',
+                nameGap: 60,
+                nameTextStyle: {
+                    color: '#333',  // Title text color
+                    fontStyle: 'normal',  // Could be 'normal', 'italic', or 'oblique'
+                    fontWeight: 'bold',  // Could be 'normal', 'bold', 'bolder', 'lighter', or specific numerical values
+                    fontFamily: 'Arial',  // Title font family
+                    fontSize: 18,  // Title font size in pixels
+                }
+            },
+            dataZoom: [
+                {
+                    type: 'inside',
+                    start: 0,
+                    end: 20
+                },
+                {
+                    start: 0,
+                    end: 20
+                }
+            ],
+            series: [
+                {
+                    name: 'Dados',
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'none',
+                    areaStyle: {},
+                    data: data, // Your data array
+                    lineStyle: {
+                        color: calculateOverallTrendColor(data), // Call a function to determine the color
+                    },
+                    // itemStyle: {
+                    //     color: 'rgb(255, 70, 131)'
+                    // },
+                    // areaStyle: {
+                    //     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    //         {
+                    //             offset: 0,
+                    //             color: 'rgb(255, 158, 68)'
+                    //         },
+                    //         {
+                    //             offset: 1,
+                    //             color: 'rgb(255, 70, 131)'
+                    //         }
+                    //     ])
+                    // },
+
+                }
+            ]
+        };
+
+        function calculateOverallTrendColor(data) {
+            // Simplified logic to determine the overall trend
+            var total = 0;
+            data.forEach(function (item) {
+                total += item[1]; // Assuming item[1] is the value
+            });
+            if (total >= 0) {
+                return 'red'; // Positive trend
+            } else {
+                return 'green'; // Negative trend
+            }
+        }
+
+        // Based on prepared DOM, initialize ECharts instance
+        var myChart = echarts.init(document.getElementById('container'));
+
+        // Use just the specified configurations and data
+        myChart.setOption(option);
+    </script>
+</body>
+
+</html>

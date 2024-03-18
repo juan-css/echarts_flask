@@ -1,118 +1,131 @@
 <!DOCTYPE html>
-<html style="height: 100%">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>Large Area Chart Visualization</title>
-    <!-- Include ECharts library -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.3.1/dist/echarts.min.js"></script>
-</head>
-
-<body style="height: 100%; margin: 0">
-    <div id="container" style="height: 100%"></div>
-    <script type="text/javascript">
-        // Your generated data from Python
-        var data = JSON.parse(`{{data}}`);
-
-        // Specify the configuration items and data for the chart
-        var option = {
-            tooltip: {
-                trigger: 'axis',
-                position: function (pt) {
-                    return [pt[0], '10%'];
-                }
-            },
-            // title: {
-            //     left: 'center',
-            //     text: 'Large Area Chart'
-            // },
-            toolbox: {
-                feature: {
-                    dataZoom: {
-                        yAxisIndex: 'none'
-                    },
-                    restore: {},
-                    saveAsImage: {}
-                }
-            },
-            xAxis: {
-                type: 'time',
-                boundaryGap: false,
-            },
-            yAxis: {
-                type: 'value',
-                boundaryGap: [0, '100%'],
-                name: 'SD from the mean',
-                nameLocation: 'middle',
-                nameGap: 60,
-                nameTextStyle: {
-                    color: '#333',  // Title text color
-                    fontStyle: 'normal',  // Could be 'normal', 'italic', or 'oblique'
-                    fontWeight: 'bold',  // Could be 'normal', 'bold', 'bolder', 'lighter', or specific numerical values
-                    fontFamily: 'Arial',  // Title font family
-                    fontSize: 18,  // Title font size in pixels
-                }
-            },
-            dataZoom: [
-                {
-                    type: 'inside',
-                    start: 0,
-                    end: 20
-                },
-                {
-                    start: 0,
-                    end: 20
-                }
-            ],
-            series: [
-                {
-                    name: 'Dados',
-                    type: 'line',
-                    smooth: true,
-                    symbol: 'none',
-                    areaStyle: {},
-                    data: data, // Your data array
-                    lineStyle: {
-                        color: calculateOverallTrendColor(data), // Call a function to determine the color
-                    },
-                    // itemStyle: {
-                    //     color: 'rgb(255, 70, 131)'
-                    // },
-                    // areaStyle: {
-                    //     color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                    //         {
-                    //             offset: 0,
-                    //             color: 'rgb(255, 158, 68)'
-                    //         },
-                    //         {
-                    //             offset: 1,
-                    //             color: 'rgb(255, 70, 131)'
-                    //         }
-                    //     ])
-                    // },
-
-                }
-            ]
-        };
-
-        function calculateOverallTrendColor(data) {
-            // Simplified logic to determine the overall trend
-            var total = 0;
-            data.forEach(function (item) {
-                total += item[1]; // Assuming item[1] is the value
-            });
-            if (total >= 0) {
-                return 'red'; // Positive trend
-            } else {
-                return 'green'; // Negative trend
-            }
+    <meta charset="utf-8">
+    <title>ECharts - Line and Heatmap Synchronization</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <style>
+        #container {
+            height: 600px;
+            width: 100%;
         }
 
-        // Based on prepared DOM, initialize ECharts instance
-        var myChart = echarts.init(document.getElementById('container'));
+        #lineChart,
+        #heatmapChart {
+            height: 50%;
+            width: 100%;
+        }
+    </style>
+</head>
 
-        // Use just the specified configurations and data
-        myChart.setOption(option);
+<body>
+    <div id="container">
+        <div id="lineChart"></div>
+        <div id="heatmapChart"></div>
+    </div>
+    <script type="text/javascript">
+        var lineData = {{ line_data }}; // Replace {{line_data}} with your line data array
+        var heatmapData = {{ heatmap_data }}; // Replace {{heatmap_data}} with your heatmap data array
+
+        // Line Chart
+        var lineChart = echarts.init(document.getElementById('lineChart'));
+        var lineOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'time'
+            },
+            yAxis: {
+                type: 'value'
+            },
+            series: [{
+                data: lineData,
+                type: 'line',
+                areaStyle: {}
+            }],
+            dataZoom: [{
+                type: 'slider',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            }]
+        };
+        lineChart.setOption(lineOption);
+
+        // Heatmap Chart
+        var heatmapChart = echarts.init(document.getElementById('heatmapChart'));
+        var heatmapOption = {
+            tooltip: {
+                position: 'top'
+            },
+            animation: false,
+            grid: {
+                height: '50%',
+                y: '10%'
+            },
+            xAxis: {
+                type: 'category',
+                data: Array.from(new Array(365), (val, index) => index + 1),
+                splitArea: {
+                    show: true
+                }
+            },
+            yAxis: {
+                type: 'category',
+                data: Array.from(new Array(24), (val, index) => index),
+                splitArea: {
+                    show: true
+                }
+            },
+            visualMap: {
+                min: 0,
+                max: 100,
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: '15%'
+            },
+            series: [{
+                name: 'Heatmap',
+                type: 'heatmap',
+                data: heatmapData,
+                label: {
+                    show: false
+                },
+                emphasis: {
+                    itemStyle: {
+                        shadowBlur: 10,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }],
+            dataZoom: [{
+                type: 'slider',
+                xAxisIndex: 0,
+                start: 0,
+                end: 100
+            }]
+        };
+        heatmapChart.setOption(heatmapOption);
+
+        // Synchronize dataZoom for both charts
+        lineChart.on('dataZoom', function (params) {
+            heatmapChart.dispatchAction({
+                type: 'dataZoom',
+                start: params.batch[0].start,
+                end: params.batch[0].end
+            });
+        });
+
+        heatmapChart.on('dataZoom', function (params) {
+            lineChart.dispatchAction({
+                type: 'dataZoom',
+                start: params.batch[0].start,
+                end: params.batch[0].end
+            });
+        });
     </script>
 </body>
 
